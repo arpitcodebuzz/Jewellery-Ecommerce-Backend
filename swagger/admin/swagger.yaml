@@ -1,0 +1,2296 @@
+openapi: 3.0.0
+info:
+  title: ADMIN API
+  version: 1.0.0
+  description: Admin APIs
+
+servers:
+  - url: https://2prbc8z4-5000.inc1.devtunnels.ms/admin
+    description: DevTunnel public server
+
+
+
+tags:
+  - name: Auth
+    description: ADMIN APIs
+  - name: Categories
+    description: Category Management APIs
+  - name: Collections
+    description: Collection Management APIs
+  - name: Products
+    description: Product Management APIs
+  - name: Product Metals
+    description: Product Metal Components Management APIs
+  - name: Product Stones
+    description: Product Stone Components Management APIs
+  - name: Product Images
+    description: Product Image Management APIs
+  - name: Metal Rates
+    description: Metal Rate Management APIs
+  - name: Stone Rates
+    description: Stone Rate Management APIs
+
+
+paths:
+  /auth/create-admin:
+    post:
+      tags:
+        - Auth
+      summary: Create new admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAdminRequest'
+      responses:
+        '200':
+          description: Admin created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Admin logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Admin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout admin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Admin logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/addCategory:
+    post:
+      tags:
+        - Categories
+      summary: Add new category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+            example:
+              name: "Necklaces"
+              slug: "necklaces"
+      responses:
+        '200':
+          description: Category added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Category added successfully"
+                data: null
+        '400':
+          description: Category already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Category already exists"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /categories/getCategories:
+    get:
+      tags:
+        - Categories
+      summary: Get all categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Categories fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCategoriesResponse'
+              example:
+                status: true
+                message: "Categories fetched successfully"
+                data:
+                  categories:
+                    - id: 1
+                      name: "Rings"
+                      slug: "rings"
+                      created_at: "2024-02-24T10:00:00Z"
+                      updated_at: "2024-02-24T12:00:00Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /categories/updateCategory/{id}:
+    put:
+      tags:
+        - Categories
+      summary: Update category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+            example:
+              name: "Platinum Rings"
+              slug: "platinum-rings"
+      responses:
+        '200':
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Category updated successfully"
+                data: null
+        '400':
+          description: Category name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Category name already exists"
+                data: null
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Category not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /categories/deleteCategory/{id}:
+    delete:
+      tags:
+        - Categories
+      summary: Delete category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Category deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Category deleted successfully"
+                data: null
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Category not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /collections/addCollection:
+    post:
+      tags:
+        - Collections
+      summary: Add new collection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionRequest'
+            example:
+              name: "Bridal Collection"
+              slug: "bridal-collection"
+      responses:
+        '200':
+          description: Collection added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Collection added successfully"
+                data: null
+        '400':
+          description: Collection name or slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Collection name already exists"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /collections/getCollections:
+    get:
+      tags:
+        - Collections
+      summary: Get all collections
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Collections fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCollectionsResponse'
+              example:
+                status: true
+                message: "Collections fetched successfully"
+                data:
+                  collections:
+                    - id: 1
+                      name: "Bridal Collection"
+                      slug: "bridal-collection"
+                      created_at: "2024-02-24T10:00:00Z"
+                      updated_at: "2024-02-24T12:00:00Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /collections/updateCollection/{id}:
+    put:
+      tags:
+        - Collections
+      summary: Update collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCollectionRequest'
+            example:
+              name: "Summer Wedding Collection"
+              slug: "summer-wedding-collection"
+      responses:
+        '200':
+          description: Collection updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Collection updated successfully"
+                data: null
+        '400':
+          description: Collection name or slug already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Collection slug already exists"
+                data: null
+        '404':
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Collection not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /collections/deleteCollection/{id}:
+    delete:
+      tags:
+        - Collections
+      summary: Delete collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Collection deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Collection deleted successfully"
+                data: null
+        '404':
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Collection not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products/addProduct:
+    post:
+      tags:
+        - Products
+      summary: Add new product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+            example:
+              name: "Gold Diamond Ring"
+              sku: "RG-001"
+              product_type: "ring"
+              target_gender: "women"
+              category_id: 1
+              collection_id: 1
+              default_metal_type: "gold"
+              making_charge_type: "per_gram"
+              making_charge_value: 500
+              wastage_percent: 2.5
+              margin_percent: 10
+              gst_percent: 3
+              status: "active"
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Product created successfully"
+                data:
+                  id: 1
+                  name: "Gold Diamond Ring"
+                  sku: "RG-001"
+        '400':
+          description: Invalid input or reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Invalid category reference"
+                data: null
+        '409':
+          description: SKU or name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "SKU already exists"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products/getProducts:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: category_id
+          in: query
+          schema:
+            type: integer
+        - name: collection_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Products fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductsResponse'
+              example:
+                status: true
+                message: "Products fetched successfully"
+                data:
+                  - id: 1
+                    name: "Gold Diamond Ring"
+                    sku: "RG-001"
+                    category_name: "Rings"
+                    collection_name: "Bridal Collection"
+                    status: "active"
+                meta:
+                  page: 1
+                  limit: 10
+                  total: 1
+                  totalPages: 1
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products/updateProduct/{id}:
+    put:
+      tags:
+        - Products
+      summary: Update product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+            example:
+              name: "Rose Gold Diamond Ring"
+              making_charge_value: 550
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Product updated successfully"
+                data: null
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Invalid metal type"
+                data: null
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Product not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products/updateProductStatus/{id}:
+    put:
+      tags:
+        - Products
+      summary: Update product status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductStatusRequest'
+            example:
+              status: "inactive"
+      responses:
+        '200':
+          description: Product status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Product status updated successfully"
+                data: null
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Product not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products/deleteProduct/{id}:
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Product deleted successfully"
+                data: null
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Product not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products_metals/{productId}/addMetal:
+    post:
+      tags:
+        - Product Metals
+      summary: Add metal component to product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProductMetalRequest'
+            example:
+              metal_type: "gold"
+              purity_code: "22K"
+              purity_value: 91.6
+              weight_grams: 5.5
+              is_primary: true
+      responses:
+        '201':
+          description: Metal component added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductMetalsResponse'
+              example:
+                status: true
+                message: "Metal component added successfully"
+                data:
+                  - id: 1
+                    product_id: 1
+                    metal_type: "gold"
+                    purity_code: "22K"
+                    purity_value: 91.6
+                    weight_grams: 5.5
+                    is_primary: true
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Product not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products_metals/{productId}/getMetals:
+    get:
+      tags:
+        - Product Metals
+      summary: Get all metal components of a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product metals fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductMetalsResponse'
+              example:
+                status: true
+                message: "Product metals fetched successfully"
+                data:
+                  - id: 1
+                    product_id: 1
+                    metal_type: "gold"
+                    purity_code: "22K"
+                    purity_value: 91.6
+                    weight_grams: 5.5
+                    is_primary: true
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Product not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products_metals/{productId}/updateMetal/{metalId}:
+    put:
+      tags:
+        - Product Metals
+      summary: Update metal component of a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: metalId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductMetalRequest'
+            example:
+              weight_grams: 5.75
+              is_primary: true
+      responses:
+        '200':
+          description: Metal component updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductMetalsResponse'
+              example:
+                status: true
+                message: "Metal component updated successfully"
+                data:
+                  - id: 1
+                    product_id: 1
+                    metal_type: "gold"
+                    purity_code: "22K"
+                    purity_value: 91.6
+                    weight_grams: 5.75
+                    is_primary: true
+        '404':
+          description: Product or Metal component not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Metal component not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+  /products_metals/{productId}/deleteMetal/{metalId}:
+    delete:
+      tags:
+        - Product Metals
+      summary: Delete metal component from product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: metalId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Metal component deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductMetalsResponse'
+              example:
+                status: true
+                message: "Metal component deleted successfully"
+                data: []
+        '404':
+          description: Product or Metal component not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Metal component not found"
+                data: null
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Something went wrong"
+                data: null
+
+
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message
+        data:
+          type: object
+          nullable: true
+          example: null
+
+    CreateAdminRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+          example: Admin User
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          example: "Password@123"
+        role:
+          type: string
+          example: superadmin
+    
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          example: "Password@123"
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Success message
+        data:
+          type: object
+          nullable: true
+          example: null
+
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Admin logged in successfully
+        data:
+          type: string
+          description: JWT Access Token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIn0..."
+
+    CreateCategoryRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          example: Rings
+        slug:
+          type: string
+          example: rings
+    
+    UpdateCategoryRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          example: Gold Rings
+        slug:
+          type: string
+          example: gold-rings
+
+    GetCategoriesResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Categories fetched successfully
+        data:
+          type: object
+          properties:
+            categories:
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Rings
+        slug:
+          type: string
+          example: rings
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-02-24T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-02-24T12:00:00Z"
+
+    CreateCollectionRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          example: Bridal Collection
+        slug:
+          type: string
+          example: bridal-collection
+    
+    UpdateCollectionRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          example: Summer Wedding Collection
+        slug:
+          type: string
+          example: summer-wedding-collection
+
+    GetCollectionsResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Collections fetched successfully
+        data:
+          type: object
+          properties:
+            collections:
+              type: array
+              items:
+                $ref: '#/components/schemas/Collection'
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Bridal Collection
+        slug:
+          type: string
+          example: bridal-collection
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-02-24T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-02-24T12:00:00Z"
+
+    CreateProductRequest:
+      type: object
+      required:
+        - name
+        - sku
+        - product_type
+        - target_gender
+        - category_id
+        - default_metal_type
+        - making_charge_type
+        - making_charge_value
+      properties:
+        name:
+          type: string
+          example: Gold Diamond Ring
+        sku:
+          type: string
+          example: RG-001
+        product_type:
+          type: string
+          enum: [ring, earring, pendant, kada, bracelet, chain, coin, bar]
+          example: ring
+        target_gender:
+          type: string
+          enum: [men, women, unisex]
+          example: women
+        category_id:
+          type: integer
+          example: 1
+        collection_id:
+          type: integer
+          nullable: true
+          example: 1
+        default_metal_type:
+          type: string
+          enum: [gold, silver, platinum]
+          example: gold
+        making_charge_type:
+          type: string
+          enum: [per_gram, fixed]
+          example: per_gram
+        making_charge_value:
+          type: number
+          example: 500
+        wastage_percent:
+          type: number
+          default: 0
+          example: 2.5
+        margin_percent:
+          type: number
+          default: 0
+          example: 10
+        gst_percent:
+          type: number
+          default: 3
+          example: 3
+        status:
+          type: string
+          enum: [active, inactive]
+          default: active
+          example: active
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Rose Gold Diamond Ring
+        sku:
+          type: string
+          example: RG-001-B
+        product_type:
+          type: string
+          enum: [ring, earring, pendant, kada, bracelet, chain, coin, bar]
+        target_gender:
+          type: string
+          enum: [men, women, unisex]
+        category_id:
+          type: integer
+        collection_id:
+          type: integer
+          nullable: true
+        default_metal_type:
+          type: string
+          enum: [gold, silver, platinum]
+        making_charge_type:
+          type: string
+          enum: [per_gram, fixed]
+        making_charge_value:
+          type: number
+        wastage_percent:
+          type: number
+        margin_percent:
+          type: number
+        gst_percent:
+          type: number
+        status:
+          type: string
+          enum: [active, inactive]
+
+    UpdateProductStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [active, inactive]
+          example: inactive
+
+    GetProductsResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Products fetched successfully
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 1
+            totalPages:
+              type: integer
+              example: 1
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Gold Diamond Ring
+        sku:
+          type: string
+          example: RG-001
+        product_type:
+          type: string
+          example: ring
+        target_gender:
+          type: string
+          example: women
+        category_id:
+          type: integer
+          example: 1
+        collection_id:
+          type: integer
+          nullable: true
+          example: 1
+        category_name:
+          type: string
+          example: Rings
+        collection_name:
+          type: string
+          example: Bridal Collection
+        default_metal_type:
+          type: string
+          example: gold
+        making_charge_type:
+          type: string
+          example: per_gram
+        making_charge_value:
+          type: number
+          example: 500
+        wastage_percent:
+          type: number
+          example: 2.5
+        margin_percent:
+          type: number
+          example: 10
+        gst_percent:
+          type: number
+          example: 3
+        status:
+          type: string
+          example: active
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-02-24T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-02-24T12:00:00Z"
+
+  /products_stones/{productId}/addStone:
+    post:
+      tags:
+        - Product Stones
+      summary: Add stone component to product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProductStoneRequest'
+            example:
+              stone_type: "diamond"
+              clarity_grade: "VVS1"
+              color_grade: "G"
+              cut_grade: "Excellent"
+              weight_carat: 0.5
+              piece_count: 1
+      responses:
+        '201':
+          description: Stone component added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductStonesResponse'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+  /products_stones/{productId}/getStones:
+    get:
+      tags:
+        - Product Stones
+      summary: Get all stone components of a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product stones fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductStonesResponse'
+        '404':
+          description: Product not found
+
+ 
+
+  /products_stones/{productId}/deleteStone/{stoneId}:
+    delete:
+      tags:
+        - Product Stones
+      summary: Delete stone component from product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: stoneId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stone component deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductStonesResponse'
+        '404':
+          description: Product or Stone component not found
+
+  /products_images/addProductImage/{productId}:
+    post:
+      tags:
+        - Product Images
+      summary: Add image to product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Image added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductImagesResponse'
+        '400':
+          description: Image is required
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+
+  /products_images/getProductImages/{productId}:
+    get:
+      tags:
+        - Product Images
+      summary: Get all images of a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product images fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductImagesResponse'
+        '404':
+          description: Product not found
+
+  /products_images/deleteProductImage/{productId}/{imageId}:
+    delete:
+      tags:
+        - Product Images
+      summary: Delete product image
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Image deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProductImagesResponse'
+        '404':
+          description: Product or Image not found
+
+  /metal_rates/addMetalRate:
+    post:
+      tags:
+        - Metal Rates
+      summary: Add new metal rate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMetalRateRequest'
+            example:
+              metal_type: "gold"
+              purity_code: "22K"
+              rate_per_gram: 6500.50
+              effective_from: "2024-02-25T10:00:00Z"
+      responses:
+        '201':
+          description: Metal rate created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetalRatesResponse'
+        '500':
+          description: Internal server error
+
+  /metal_rates/getMetalRates:
+    get:
+      tags:
+        - Metal Rates
+      summary: Get all metal rates
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: metal_type
+          in: query
+          schema:
+            type: string
+            enum: [gold, silver, platinum]
+        - name: purity_code
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Metal rates fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetalRatesResponse'
+        '500':
+          description: Internal server error
+
+  /metal_rates/updateMetalRate/{metalRateId}:
+    put:
+      tags:
+        - Metal Rates
+      summary: Update metal rate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: metalRateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMetalRateRequest'
+            example:
+              rate_per_gram: 6600.00
+      responses:
+        '200':
+          description: Metal rate updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetalRatesResponse'
+        '404':
+          description: Metal rate not found
+        '500':
+          description: Internal server error
+
+  /metal_rates/deleteMetalRate/{metalRateId}:
+    delete:
+      tags:
+        - Metal Rates
+      summary: Delete metal rate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: metalRateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Metal rate deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetalRatesResponse'
+        '404':
+          description: Metal rate not found
+        '500':
+          description: Internal server error
+
+
+# --- Added Schemas ---
+
+    AddProductMetalRequest:
+      type: object
+      required:
+        - metal_type
+        - purity_code
+        - purity_value
+        - weight_grams
+      properties:
+        metal_type:
+          type: string
+          enum: [gold, silver, platinum]
+        purity_code:
+          type: string
+        purity_value:
+          type: number
+        weight_grams:
+          type: number
+        is_primary:
+          type: boolean
+
+    UpdateProductMetalRequest:
+      type: object
+      properties:
+        metal_type:
+          type: string
+          enum: [gold, silver, platinum]
+        purity_code:
+          type: string
+        purity_value:
+          type: number
+        weight_grams:
+          type: number
+        is_primary:
+          type: boolean
+
+    GetProductMetalsResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductMetal'
+
+    ProductMetal:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        metal_type:
+          type: string
+        purity_code:
+          type: string
+        purity_value:
+          type: number
+        weight_grams:
+          type: number
+        is_primary:
+          type: boolean
+
+    AddProductStoneRequest:
+      type: object
+      required:
+        - stone_type
+        - weight_carat
+      properties:
+        stone_type:
+          type: string
+        clarity_grade:
+          type: string
+        color_grade:
+          type: string
+        cut_grade:
+          type: string
+        weight_carat:
+          type: number
+        piece_count:
+          type: integer
+
+    UpdateProductStoneRequest:
+      type: object
+      description: |
+        Update any stone fields. If stone_type is 'diamond', clarity_grade and color_grade are required.
+      properties:
+        stone_type:
+          type: string
+          example: diamond
+        clarity_grade:
+          type: string
+          nullable: true
+          example: VS1
+        color_grade:
+          type: string
+          nullable: true
+          example: G
+        cut_grade:
+          type: string
+          nullable: true
+          example: Excellent
+        weight_carat:
+          type: number
+          example: 0.55
+        piece_count:
+          type: integer
+          example: 5
+
+    GetProductStonesResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductStone'
+
+    ProductStone:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        stone_type:
+          type: string
+        clarity_grade:
+          type: string
+        color_grade:
+          type: string
+        cut_grade:
+          type: string
+        weight_carat:
+          type: number
+        piece_count:
+          type: integer
+
+    GetProductImagesResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+
+    ProductImage:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        image_url:
+          type: string
+
+    CreateMetalRateRequest:
+      type: object
+      required:
+        - metal_type
+        - purity_code
+        - rate_per_gram
+      properties:
+        metal_type:
+          type: string
+          enum: [gold, silver, platinum]
+        purity_code:
+          type: string
+        rate_per_gram:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+
+    UpdateMetalRateRequest:
+      type: object
+      properties:
+        metal_type:
+          type: string
+          enum: [gold, silver, platinum]
+        purity_code:
+          type: string
+        rate_per_gram:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+
+    GetMetalRatesResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetalRate'
+
+    MetalRate:
+      type: object
+      properties:
+        id:
+          type: integer
+        metal_type:
+          type: string
+        purity_code:
+          type: string
+        rate_per_gram:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+  /stone_rates/addStoneRate:
+    post:
+      tags:
+        - Stone Rates
+      summary: Add new stone rate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStoneRateRequest'
+            example:
+              stone_type: "diamond"
+              clarity_grade: "VVS1"
+              color_grade: "G"
+              cut_grade: "Excellent"
+              rate_per_carat: 150000.00
+              effective_from: "2024-02-25T10:00:00Z"
+      responses:
+        '201':
+          description: Stone rate created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStoneRatesResponse'
+        '500':
+          description: Internal server error
+
+  /stone_rates/getStoneRates:
+    get:
+      tags:
+        - Stone Rates
+      summary: Get all stone rates
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stone_type
+          in: query
+          schema:
+            type: string
+        - name: clarity_grade
+          in: query
+          schema:
+            type: string
+        - name: color_grade
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Stone rates fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStoneRatesResponse'
+        '500':
+          description: Internal server error
+
+  /stone_rates/getLatestStoneRate:
+    get:
+      tags:
+        - Stone Rates
+      summary: Get latest stone rate based on filters
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stone_type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: onDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Latest stone rate fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StoneRate'
+        '500':
+          description: Internal server error
+
+  /stone_rates/updateStoneRate/{stoneRateId}:
+    put:
+      tags:
+        - Stone Rates
+      summary: Update stone rate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stoneRateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStoneRateRequest'
+            example:
+              rate_per_carat: 155000.00
+      responses:
+        '200':
+          description: Stone rate updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStoneRatesResponse'
+        '404':
+          description: Stone rate not found
+        '500':
+          description: Internal server error
+
+  /stone_rates/changeStatusStoneRate/{stoneRateId}:
+    patch:
+      tags:
+        - Stone Rates
+      summary: Change stone rate status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stoneRateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, inactive]
+      responses:
+        '200':
+          description: Status updated successfully
+        '404':
+          description: Stone rate not found
+
+  /stone_rates/deleteStoneRate/{stoneRateId}:
+    delete:
+      tags:
+        - Stone Rates
+      summary: Delete stone rate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stoneRateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stone rate deleted successfully
+        '404':
+          description: Stone rate not found
+        '500':
+          description: Internal server error
+
+
+# --- Stone Rate Schemas ---
+
+    CreateStoneRateRequest:
+      type: object
+      required:
+        - stone_type
+        - rate_per_carat
+        - effective_from
+      properties:
+        stone_type:
+          type: string
+        clarity_grade:
+          type: string
+        color_grade:
+          type: string
+        cut_grade:
+          type: string
+        rate_per_carat:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, inactive]
+
+    UpdateStoneRateRequest:
+      type: object
+      properties:
+        stone_type:
+          type: string
+        clarity_grade:
+          type: string
+        color_grade:
+          type: string
+        cut_grade:
+          type: string
+        rate_per_carat:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, inactive]
+
+    GetStoneRatesResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoneRate'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    StoneRate:
+      type: object
+      properties:
+        id:
+          type: integer
+        stone_type:
+          type: string
+        clarity_grade:
+          type: string
+        color_grade:
+          type: string
+        cut_grade:
+          type: string
+        rate_per_carat:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+   

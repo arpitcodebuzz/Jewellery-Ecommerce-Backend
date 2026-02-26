@@ -1,0 +1,1195 @@
+openapi: 3.0.0
+info:
+  title: PULSED LABS WEB API
+  version: 1.0.0
+  description: Web APIs for PULSED LAB - Category, Product, and Video Management
+
+servers:
+  - url: https://2prbc8z4-5000.inc1.devtunnels.ms/api
+    description: DevTunnel public server
+
+tags:
+  - name: Categories
+    description: Category Management APIs
+  - name: Sub-Categories
+    description: Sub-Category Management APIs
+  - name: Child-Categories
+    description: Child-Category Management APIs
+  - name: Products
+    description: Product Management APIs
+  - name: Video-Categories
+    description: Video Category Management APIs
+  - name: Videos
+    description: Video Management APIs
+  - name: Contact-Us
+    description: Contact Us Inquiry APIs
+  - name: Careers
+    description: Career Application APIs
+  - name: Chatbot
+    description: Chatbot assistant for Pulsed Lab
+  - name: Auth
+    description: Authentication and Profile Management APIs
+
+components:
+  securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+  schemas:
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Electronics
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SubCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Phones
+        category_id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: Electronics
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChildCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Smartphones
+        category_id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: Electronics
+        sub_category_id:
+          type: integer
+          example: 1
+        sub_category_name:
+          type: string
+          example: Phones
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: iPhone 15 Pro
+        description:
+          type: string
+          example: Latest iPhone with advanced features
+        image:
+          type: string
+          example: uploads/products/image.png
+        category_id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: Electronics
+        sub_category_id:
+          type: integer
+          example: 1
+        sub_category_name:
+          type: string
+          example: Phones
+        child_category_id:
+          type: integer
+          example: 1
+        child_category_name:
+          type: string
+          example: Smartphones
+        new_product:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VideoCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Tutorial Videos
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Video:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Product Tutorial
+        url:
+          type: string
+          example: https://www.youtube.com/watch?v=example
+        video_category_id:
+          type: integer
+          example: 1
+        video_category_name:
+          type: string
+          example: Tutorial Videos
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateContactUsRequest:
+        type: object
+        required:
+          - name
+          - email
+          - subject
+        properties:
+          name:
+            type: string
+            example: John Doe
+          email:
+            type: string
+            format: email
+            example: john@example.com
+          subject:
+            type: string
+            example: Product Inquiry
+          message:
+            type: string
+            example: I would like to know more about your products
+
+    ContactUs:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        subject:
+          type: string
+          example: Product Inquiry
+        message:
+          type: string
+          example: I would like to know more about your products
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCareerRequest:
+        type: object
+        required:
+          - name
+          - email
+          - mobile
+        properties:
+          name:
+            type: string
+            example: Jane Smith
+          email:
+            type: string
+            format: email
+            example: jane.smith@example.com
+          mobile:
+            type: string
+            example: +1-234-567-8900
+          message:
+            type: string
+            example: I am interested in the Software Developer position
+
+    Career:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Jane Smith
+        email:
+          type: string
+          format: email
+          example: jane.smith@example.com
+        mobile:
+          type: string
+          example: +1-234-567-8900
+        message:
+          type: string
+          example: I am interested in the Software Developer position
+        resume:
+          type: string
+          example: uploads/careers/resume.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message
+    ChatbotRequest:
+      type: object
+      required:
+        - question
+      properties:
+        question:
+          type: string
+          example: What is Pulsed Lab?
+
+    ChatbotResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        question:
+          type: string
+          example: What is Pulsed Lab?
+        answer:
+          type: string
+          example: Pulsed Lab is an innovative platform offering cutting-edge solutions...
+
+    SendOtpRequest:
+      type: object
+      required:
+        - email
+        - purpose
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        purpose:
+          type: string
+          enum: [VERIFY_EMAIL, FORGOT_PASSWORD]
+          example: VERIFY_EMAIL
+
+    VerifyOtpRequest:
+      type: object
+      required:
+        - email
+        - otp
+        - purpose
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        otp:
+          type: string
+          example: "123456"
+        purpose:
+          type: string
+          enum: [VERIFY_EMAIL, FORGOT_PASSWORD]
+          example: FORGOT_PASSWORD
+
+    VerifyEmailRequest:
+      type: object
+      required:
+        - email
+        - otp
+        - purpose
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        otp:
+          type: string
+          example: "123456"
+     
+
+    CreateAccountRequest:
+      type: object
+      required:
+        - email
+        - name
+        - phone
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: John Doe
+        phone:
+          type: string
+          example: "1234567890"
+        password:
+          type: string
+          format: password
+          example: "password123"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: "password123"
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: "newpassword123"
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - email
+        - old_password
+        - new_password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        old_password:
+          type: string
+          format: password
+          example: "oldpassword123"
+        new_password:
+          type: string
+          format: password
+          example: "newpassword123"
+
+    UpdateProfileRequest:
+      type: object
+      required:
+        - email
+        - name
+        - phone
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: John Doe
+        phone:
+          type: string
+          example: "1234567890"
+
+    GoogleLoginRequest:
+      type: object
+      required:
+        - email
+        - name
+        - google_id
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: John Doe
+        google_id:
+          type: string
+          example: "123456789012345678901"
+
+    AuthResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Success message
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+paths:
+  /auth/send-otp:
+    post:
+      tags:
+        - Auth
+      summary: Send OTP
+      description: Send an OTP to the user's email for verification or password recovery.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/verify-otp:
+    post:
+      tags:
+        - Auth
+      summary: Verify OTP
+      description: Verify the OTP sent to the user's email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/verify-email:
+    post:
+      tags:
+        - Auth
+      summary: Verify Email
+      description: Verify the user's email using the OTP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/create-account:
+    post:
+      tags:
+        - Auth
+      summary: Create Account
+      description: Finalize account creation by providing name, phone, and password after email verification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '200':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User Login
+      description: Authenticate user using email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Reset Password (Forgot Password)
+      security:
+        - bearerAuth: []
+      description: Reset user password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/change-password:
+    post:
+      tags:
+        - Auth
+      summary: Change Password
+      description: Change the password for an authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/get-profile:
+    get:
+      tags:
+        - Auth
+      summary: Get User Profile
+      description: Retrieve the profile information of the authenticated user.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  /auth/update-profile:
+    put:
+      tags:
+        - Auth
+      summary: Update User Profile
+      description: Update name and phone of the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: User Logout
+      description: Revoke the current user session token.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/google-login:
+    post:
+      tags:
+        - Auth
+      summary: Google Login
+      description: Authenticate user using Google.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /chatbot/chat:
+    post:
+      tags:
+        - Chatbot
+      summary: Chat with Pulsed Lab AI Assistant
+      description: Send a question to the Pulsed Lab AI chatbot and receive an intelligent response. The chatbot uses AI to answer questions related to Pulsed Lab services, products, and information.
+      operationId: chatWithAI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatbotRequest'
+            examples:
+              example1:
+                value:
+                  question: "What is Pulsed Lab?"
+              example2:
+                value:
+                  question: "What services do you offer?"
+      responses:
+        '200':
+          description: Successful response from chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatbotResponse'
+              examples:
+                example1:
+                  value:
+                    success: true
+                    question: "What is Pulsed Lab?"
+                    answer: "Pulsed Lab is an innovative platform providing cutting-edge solutions..."
+        '400':
+          description: Bad request - missing or invalid question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Question is required"
+        '500':
+          description: Server error - AI failed to respond
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "AI failed to respond"
+
+  /category/list:
+    get:
+      tags:
+        - Categories
+      summary: Get all categories
+      description: Retrieve a list of all product categories
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+
+  /category/detail/{id}:
+    get:
+      tags:
+        - Categories
+      summary: Get category by ID
+      description: Retrieve a specific category with all its details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Category found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /subCategory/list:
+    get:
+      tags:
+        - Sub-Categories
+      summary: Get all sub-categories with category details
+      description: Retrieve a list of all sub-categories including parent category names
+      responses:
+        '200':
+          description: List of sub-categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubCategory'
+
+  /subCategory/detail/{id}:
+    get:
+      tags:
+        - Sub-Categories
+      summary: Get sub-category by ID with category details
+      description: Retrieve a specific sub-category with parent category name
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Sub-category found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SubCategory'
+        '404':
+          description: Sub-category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /childCategory/list:
+    get:
+      tags:
+        - Child-Categories
+      summary: Get all child-categories with related category details
+      description: Retrieve a list of all child-categories including category and sub-category names
+      responses:
+        '200':
+          description: List of child-categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChildCategory'
+
+  /childCategory/detail/{id}:
+    get:
+      tags:
+        - Child-Categories
+      summary: Get child-category by ID with all related details
+      description: Retrieve a specific child-category with parent category and sub-category names
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Child-category found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ChildCategory'
+        '404':
+          description: Child-category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /product/list:
+    get:
+      tags:
+        - Products
+      summary: Get all products with category details
+      description: Retrieve a list of all products with category, sub-category, and child-category names
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+
+  /product/detail/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID with all category details
+      description: Retrieve a specific product with category, sub-category, and child-category information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /videoCategory/list:
+    get:
+      tags:
+        - Video-Categories
+      summary: Get all video categories
+      description: Retrieve a list of all video categories
+      responses:
+        '200':
+          description: List of video categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VideoCategory'
+
+  /videoCategory/detail/{id}:
+    get:
+      tags:
+        - Video-Categories
+      summary: Get video category by ID
+      description: Retrieve a specific video category with all its details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Video category found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/VideoCategory'
+        '404':
+          description: Video category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /video/list:
+    get:
+      tags:
+        - Videos
+      summary: Get all videos with category details
+      description: Retrieve a list of all videos with video category names
+      responses:
+        '200':
+          description: List of videos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Video'
+
+  /video/detail/{id}:
+    get:
+      tags:
+        - Videos
+      summary: Get video by ID with category details
+      description: Retrieve a specific video with video category name
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Video found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Video'
+        '404':
+          description: Video not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /contactUs/add:
+    post:
+      tags:
+        - Contact-Us
+      summary: Submit a contact us inquiry
+      description: Create a new contact us inquiry from the website
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactUsRequest'
+      responses:
+        '201':
+          description: Contact us inquiry submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Contact Us submitted successfully !!
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /career/add:
+    post:
+      tags:
+        - Careers
+      summary: Submit a career application
+      description: Submit a new career application with resume upload (PDF or Image)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - mobile
+                - resume
+              properties:
+                name:
+                  type: string
+                  example: Jane Smith
+                email:
+                  type: string
+                  format: email
+                  example: jane.smith@example.com
+                mobile:
+                  type: string
+                  example: +1-234-567-8900
+                message:
+                  type: string
+                  example: I am interested in the Software Developer position
+                resume:
+                  type: string
+                  format: binary
+                  description: Resume file (PDF or Image, max 10MB)
+      responses:
+        '201':
+          description: Career application submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Career application submitted successfully !!
+        '400':
+          description: Invalid request data or missing resume
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
