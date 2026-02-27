@@ -10,6 +10,3 @@ const ProjectName = process.env.PROJECT_NAME
 app.listen(PORT, () => {
   console.log(` ${ProjectName} server running on port ${PORT}`);
 });
-
-
-

@@ -15,7 +15,7 @@ export const swaggerSetupForWeb = (app) => {
     "/api-docs/web",
     swaggerUi.serveFiles(swaggerDocument),
     swaggerUi.setup(swaggerDocument, {
-      customSiteTitle: "PULSED LABS WEB API DOCS",
+      customSiteTitle: "JEWELLRY ECOMMERCE WEB API DOCS",
     })
   );
 };

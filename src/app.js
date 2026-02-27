@@ -7,12 +7,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // Routes
-// import webRoutes from "./common/Routes/web.routes.js";
+import webRoutes from "./common/Routes/web.routes.js";
 import adminRoutes from "./common/routes/admin.routes.js";
 
 // Swagger
 import { swaggerSetupForAdmin } from "./common/config/adminSwaggerSetup.js";
-// import { swaggerSetupForWeb } from "./common/config/webSwaggerSetup.js";
+import { swaggerSetupForWeb } from "./common/config/webSwaggerSetup.js";
 
 const app = express();
 
@@ -85,13 +85,13 @@ app.use(
    API ROUTES
    ============================== */
 app.use("/admin", adminRoutes);
-// app.use("/api", webRoutes);
+app.use("/api", webRoutes);
 
 /* ==============================
    SWAGGER SETUP
    ============================== */
 swaggerSetupForAdmin(app);
-// swaggerSetupForWeb(app);
+swaggerSetupForWeb(app);
 
 /* ==============================
    GLOBAL ERROR HANDLER
