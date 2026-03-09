@@ -10,7 +10,7 @@ const router = express.Router();
 
 // router.use(authMiddleware, isAdmin);
 
-router.post('/addProduct',validate({ body: createProductSchema }), Controller.createProduct);
+router.post('/addProduct',validate({ body: createProductSchema }),authMiddleware,isAdmin, Controller.createProduct);
 
 router.get('/getProducts', Controller.getAllProducts);
 

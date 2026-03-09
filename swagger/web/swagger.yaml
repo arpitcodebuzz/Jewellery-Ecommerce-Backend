@@ -13,6 +13,10 @@ tags:
     description: Authentication and Profile Management APIs
   - name: Products
     description: Product Catalog and Browse APIs
+  - name: Addresses
+    description: User Address Management APIs
+  - name: Cart
+    description: Shopping Cart Management APIs
 
 security:
   - bearerAuth: []
@@ -299,6 +303,149 @@ components:
             $ref: '#/components/schemas/Product'
         meta:
           $ref: '#/components/schemas/Pagination'
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        full_name:
+          type: string
+          example: John Doe
+        phone:
+          type: string
+          example: "9876543210"
+        address_line1:
+          type: string
+          example: "123, Main Street"
+        address_line2:
+          type: string
+          nullable: true
+          example: "Near Park"
+        city:
+          type: string
+          example: "Surat"
+        state:
+          type: string
+          example: "Gujarat"
+        postal_code:
+          type: string
+          example: "395001"
+        country:
+          type: string
+          example: "India"
+        is_default:
+          type: boolean
+          example: true
+        address_type:
+          type: string
+          enum: [home, work, other]
+          example: home
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AddressListResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Addresses retrieved successfully
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+      required:
+        - status
+        - message
+        - data
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        cart_id:
+          type: integer
+          example: 1
+        product_id:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+        product:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "Diamond Ring"
+            sku:
+              type: string
+              example: "RNG-GOLD-001"
+            product_type:
+              type: string
+              example: "ring"
+            target_gender:
+              type: string
+              example: "women"
+            status:
+              type: string
+              example: "active"
+            image_url:
+              type: string
+              nullable: true
+              example: "https://example.com/image.jpg"
+
+    Cart:
+      type: object
+      properties:
+        cart_id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: "active"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        total_items:
+          type: integer
+          example: 1
+
+    CartResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Cart retrieved successfully
+        data:
+          $ref: '#/components/schemas/Cart'
+      required:
+        - status
+        - message
+        - data
 
 paths:
   /auth/send-otp:
@@ -1181,3 +1328,339 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       security: []
+
+  /addresses/addAddress:
+    post:
+      tags:
+        - Addresses
+      summary: Add a new address
+      description: Create a new address for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  example: John Doe
+                phone:
+                  type: string
+                  example: "9876543210"
+                address_line1:
+                  type: string
+                  example: "123, Main Street"
+                address_line2:
+                  type: string
+                  example: "Near Park"
+                city:
+                  type: string
+                  example: "Surat"
+                state:
+                  type: string
+                  example: "Gujarat"
+                postal_code:
+                  type: string
+                  example: "395001"
+                country:
+                  type: string
+                  example: "India"
+                is_default:
+                  type: boolean
+                  example: false
+                address_type:
+                  type: string
+                  enum: [home, work, other]
+                  example: home
+              required:
+                - full_name
+                - phone
+                - address_line1
+                - city
+                - state
+                - postal_code
+      responses:
+        '200':
+          description: Address added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /addresses/getAddresses:
+    get:
+      tags:
+        - Addresses
+      summary: Get all addresses
+      description: Retrieve all addresses for the authenticated user
+      responses:
+        '200':
+          description: Addresses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /addresses/getAddress/{addressId}:
+    get:
+      tags:
+        - Addresses
+      summary: Get address by ID
+      description: Retrieve a specific address by its ID
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Address retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Address retrieved successfully
+                  data:
+                    $ref: '#/components/schemas/Address'
+        '404':
+          description: Address not found
+        '401':
+          description: Unauthorized
+
+  /addresses/updateAddress/{addressId}:
+    put:
+      tags:
+        - Addresses
+      summary: Update an address
+      description: Update an existing address for the authenticated user
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                phone:
+                  type: string
+                address_line1:
+                  type: string
+                address_line2:
+                  type: string
+                city:
+                  type: string
+                state:
+                  type: string
+                postal_code:
+                  type: string
+                country:
+                  type: string
+                is_default:
+                  type: boolean
+                address_type:
+                  type: string
+                  enum: [home, work, other]
+      responses:
+        '200':
+          description: Address updated successfully
+        '400':
+          description: Bad Request
+        '404':
+          description: Address not found
+
+  /addresses/deleteAddress/{addressId}:
+    delete:
+      tags:
+        - Addresses
+      summary: Delete an address
+      description: Remove an address for the authenticated user
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Address deleted successfully
+        '404':
+          description: Address not found
+
+  /addresses/setDefaultAddress/{addressId}:
+    post:
+      tags:
+        - Addresses
+      summary: Set address as default
+      description: Set a specific address as the default for the authenticated user
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Address set as default successfully
+        '404':
+          description: Address not found
+
+  /cart/addCart:
+    post:
+      tags:
+        - Cart
+      summary: Add item to cart
+      description: Add a new item or update quantity of an existing item in the authenticated user's cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+                quantity:
+                  type: integer
+                  example: 1
+              required:
+                - product_id
+                - quantity
+      responses:
+        '200':
+          description: Item added to cart successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+
+  /cart/getCart:
+    get:
+      tags:
+        - Cart
+      summary: Get user cart
+      description: Retrieve the current active cart and its items for the authenticated user
+      responses:
+        '200':
+          description: Cart retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Cart not found
+
+  /cart/updateCartItem/{itemId}:
+    put:
+      tags:
+        - Cart
+      summary: Update cart item quantity
+      description: Update the quantity of a specific item in the cart
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  example: 2
+              required:
+                - quantity
+      responses:
+        '200':
+          description: Item quantity updated successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Cart item not found
+
+  /cart/deleteCartItem/{itemId}:
+    delete:
+      tags:
+        - Cart
+      summary: Remove item from cart
+      description: Delete a specific item from the authenticated user's cart
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Item deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Cart item not found
+
+  /cart/clearCart:
+    delete:
+      tags:
+        - Cart
+      summary: Clear entire cart
+      description: Remove all items from the authenticated user's current active cart
+      responses:
+        '200':
+          description: Cart cleared successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Cart not found

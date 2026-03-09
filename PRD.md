@@ -484,3 +484,188 @@ orders
 order_items
 
 payments
+
+
+8. CUSTOMER ADDRESS SYSTEM
+8.1 Purpose
+
+Customers must be able to save and manage delivery addresses for checkout and order placement.
+
+The address system is required for:
+
+Shipping the order to the correct destination
+
+Identifying the delivery state for GST calculation
+
+Allowing users to store multiple addresses
+
+Storing an address snapshot in the order at checkout
+
+A customer can have multiple saved addresses, but only one address should be marked as default at a time.
+
+8.2 Customer Capabilities
+
+Customers can:
+
+Add a new address
+
+View all saved addresses
+
+View a single address
+
+Update an existing address
+
+Delete an address
+
+Set one address as default
+
+Select an address during checkout
+
+8.3 Database Table: user_addresses
+
+This table stores customer shipping addresses.
+
+Field	Description
+id	PK
+user_id	FK mapped to auth user
+full_name	Receiver full name
+phone	Mobile number
+address_line1	Main address line
+address_line2	Landmark / apartment / optional
+city	City name
+state	State name
+postal_code	PIN code
+country	Country name
+is_default	true/false
+created_at	timestamp
+updated_at	timestamp
+Example row
+id	user_id	full_name	city	state	postal_code	is_default
+1	101	Rahul Sharma	Mumbai	Maharashtra	400001	true
+8.4 Address APIs
+Create Address
+POST /api/addresses
+Get All Addresses of Logged-in User
+GET /api/addresses
+Get Single Address
+GET /api/addresses/:id
+Update Address
+PUT /api/addresses/:id
+Delete Address
+DELETE /api/addresses/:id
+Set Default Address
+PATCH /api/addresses/:id/default
+8.5 Sample Create Address Payload
+{
+  "full_name": "Rahul Sharma",
+  "phone": "9876543210",
+  "address_line1": "Bandra West",
+  "address_line2": "Near Linking Road",
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "postal_code": "400050",
+  "country": "India",
+  "is_default": true
+}
+8.6 Address Rules
+
+Each address belongs to one user
+
+A user can save multiple addresses
+
+Only one address per user can be default
+
+address_line2 is optional
+
+state is mandatory because GST calculation depends on it
+
+phone, full_name, address_line1, city, state, postal_code, and country are required
+
+A user can only manage their own addresses
+
+8.7 Address Usage in Checkout
+Checkout Flow
+
+User selects a saved address
+
+Frontend sends address_id
+
+Backend fetches the address
+
+Backend uses state to determine GST rule
+
+Backend creates order
+
+Backend stores shipping address snapshot in orders
+
+8.8 Order Address Snapshot
+
+Even if the user updates or deletes their saved address later, the placed order must keep the original delivery details.
+
+So the orders table should store:
+
+Field	Description
+shipping_name	Receiver name
+shipping_phone	Receiver phone
+shipping_address_line1	Main address line
+shipping_address_line2	Secondary address line
+shipping_city	City
+shipping_state	State
+shipping_postal_code	PIN code
+shipping_country	Country
+
+This supports accurate order history and shipment records. The current PRD already stores shipping-related order data such as shipping fields and state-based GST dependency, so this address section extends that flow explicitly. 
+
+PRD-of-This-Project
+
+8.9 Updated Table Count
+
+After adding address support, the total core tables become:
+
+15 tables
+
+PRODUCT + CATALOG
+
+categories
+
+collections
+
+products
+
+product_images
+
+product_metal_components
+
+product_stone_components
+
+metal_rates
+
+stone_rates
+
+ADMIN + CART + ORDER
+
+admins
+
+carts
+
+cart_items
+
+orders
+
+order_items
+
+payments
+
+CUSTOMER
+
+user_addresses
+
+8.10 Notes
+
+Address management is part of customer checkout readiness
+
+This is separate from authentication
+
+Address data should be validated carefully before saving
+
+Default address selection should be handled safely in the backend
