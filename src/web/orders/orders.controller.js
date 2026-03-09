@@ -1,4 +1,4 @@
-import * as service from './cart.service.js';
+import * as service from './orders.service.js';
 
 const sendResponse = (res, result) => {
   return res.status(result.statusCode).json({
@@ -8,10 +8,9 @@ const sendResponse = (res, result) => {
   });
 };
 
-
-export const addItemToCart = async (req, res) => {
+export const checkOutOrder = async (req, res) => {
   try {
-    const result = await service.addItemToCartService(req.user.id, req.body);
+    const result = await service.checkOutOrderService(req.user.id, req.body);
     return sendResponse(res, result);
   } catch (error) {
     console.error(error);
@@ -19,10 +18,9 @@ export const addItemToCart = async (req, res) => {
   }
 };
 
-
-export const getMyCart = async (req, res) => {
+export const getMyOrders = async (req, res) => {
   try {
-    const result = await service.getMyCartService(req.user.id);
+    const result = await service.getMyOrdersService(req.user.id);
     return sendResponse(res, result);
   } catch (error) {
     console.error(error);
@@ -30,33 +28,19 @@ export const getMyCart = async (req, res) => {
   }
 };
 
-
-
-export const updateCartItem = async (req, res) => {
+export const getOrderById = async (req, res) => {
   try {
-    const result = await service.updateCartItemService(req.params.itemId, req.user.id, req.body);
+    const result = await service.getOrderByIdService(req.params.orderId);
     return sendResponse(res, result);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: false, message: 'Something went wrong !!' });
   }
-};
+};  
 
-
-export const deleteCartItem = async (req, res) => {
+export const cancelOrder = async (req, res) => {
   try {
-    const result = await service.deleteCartItemService(req.params.itemId, req.user.id);
-    return sendResponse(res, result);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ status: false, message: 'Something went wrong !!' });
-  }
-};
-
-
-export const clearCart = async (req, res) => {
-  try {
-    const result = await service.clearCartService(req.user.id);
+    const result = await service.cancelOrderService(req.params.orderId);
     return sendResponse(res, result);
   } catch (error) {
     console.error(error);

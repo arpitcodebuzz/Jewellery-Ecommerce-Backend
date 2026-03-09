@@ -29,6 +29,8 @@ tags:
     description: Metal Rate Management APIs
   - name: Stone Rates
     description: Stone Rate Management APIs
+  - name: Orders
+    description: Order Management APIs
 
 
 paths:
@@ -2194,6 +2196,188 @@ paths:
         '500':
           description: Internal server error
 
+  /orders :
+    get:
+      tags:
+        - Orders
+      summary: Get all orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by order number or customer name
+      responses:
+        '200':
+          description: Orders fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrdersResponse'
+              example:
+                status: true
+                message: "Orders fetched successfully"
+                data:
+                  - id: 1
+                    order_number: "ORD2026022401"
+                    user_id: 101
+                    customer_name: "John Doe"
+                    customer_email: "john@example.com"
+                    status: "pending"
+                    subtotal_amount: 39219.60
+                    total_gst_amount: 1176.59
+                    total_amount: 40396.19
+                    shipping_state: "Maharashtra"
+                    created_at: "2024-02-24T10:30:00Z"
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 1
+                  totalPages: 1
+        '500':
+          description: Internal server error
+
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order details by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order details fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderResponse'
+              example:
+                status: true
+                message: "Order details fetched successfully"
+                data:
+                  id: 1
+                  order_number: "ORD2026022401"
+                  user_id: 101
+                  customer_name: "John Doe"
+                  customer_email: "john@example.com"
+                  customer_phone: "+91 9876543210"
+                  shipping_name: "John Doe"
+                  shipping_address: "123 Main St, Mumbai"
+                  shipping_city: "Mumbai"
+                  shipping_state: "Maharashtra"
+                  shipping_pincode: "400001"
+                  status: "pending"
+                  subtotal_amount: 39219.60
+                  total_gst_amount: 1176.59
+                  total_amount: 40396.19
+                  created_at: "2024-02-24T10:30:00Z"
+                  updated_at: "2024-02-24T10:30:00Z"
+                  order_items:
+                    - id: 1
+                      product_id: 3
+                      product_name: "22K Gold & Silver Diamond Pendant"
+                      quantity: 1
+                      unit_price: 40396.19
+                      metal_cost: 17250
+                      stone_cost: 15000
+                      making_charge: 2250
+                      wastage_amount: 517.50
+                      margin_amount: 4686.35
+                      gst_amount: 1176.59
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+
+  /orders/updateOrderStatus/{orderId}:
+    put:
+      tags:
+        - Orders
+      summary: Update order status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderStatusRequest'
+            example:
+              status: "confirmed"
+              notes: "Order confirmed, preparing for shipment"
+      responses:
+        '200':
+          description: Order status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Order status updated successfully"
+                data: null
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Cannot transition from delivered to cancelled"
+                data: null
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Order not found"
+                data: null
+        '500':
+          description: Internal server error
+
 
 # --- Stone Rate Schemas ---
 
@@ -2293,4 +2477,151 @@ paths:
           type: integer
         totalPages:
           type: integer
-   
+
+# --- Order Schemas ---
+
+    GetOrdersResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderSummary'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    GetOrderResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/OrderDetails'
+
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        order_number:
+          type: string
+        user_id:
+          type: integer
+        customer_name:
+          type: string
+        customer_email:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+        subtotal_amount:
+          type: number
+        total_gst_amount:
+          type: number
+        total_amount:
+          type: number
+        shipping_state:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrderDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        order_number:
+          type: string
+        user_id:
+          type: integer
+        customer_name:
+          type: string
+        customer_email:
+          type: string
+        customer_phone:
+          type: string
+        shipping_name:
+          type: string
+        shipping_address:
+          type: string
+        shipping_city:
+          type: string
+        shipping_state:
+          type: string
+        shipping_pincode:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+        subtotal_amount:
+          type: number
+        total_gst_amount:
+          type: number
+        total_amount:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        order_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        order_id:
+          type: integer
+        product_id:
+          type: integer
+        product_name:
+          type: string
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+        metal_cost:
+          type: number
+        stone_cost:
+          type: number
+        making_charge:
+          type: number
+        wastage_amount:
+          type: number
+        margin_amount:
+          type: number
+        gst_amount:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateOrderStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+        notes:
+          type: string
+          description: Optional notes about the status change

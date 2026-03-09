@@ -8,6 +8,7 @@ import productStoneRoutes from '../../admin/products_stones/products_stones.rout
 import productImageRoutes from '../../admin/products_images/products_images.routes.js'
 import metalRatesRoutes from '../../admin/metal_rates/metal_rates.routes.js'
 import stoneRatesRoutes from '../../admin/stone_rates/stone_rates.routes.js'
+import adminOrdersRoutes from '../../admin/orders/adminOrders.routes.js'
 
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.use('/products_stones', productStoneRoutes);
 router.use('/products_images', productImageRoutes);
 router.use('/metal_rates', metalRatesRoutes);
 router.use('/stone_rates', stoneRatesRoutes);
+router.use('/orders', adminOrdersRoutes);
 
 
 export default router;

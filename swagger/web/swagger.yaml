@@ -17,6 +17,8 @@ tags:
     description: User Address Management APIs
   - name: Cart
     description: Shopping Cart Management APIs
+  - name: Orders
+    description: Order Management APIs
 
 security:
   - bearerAuth: []
@@ -446,6 +448,278 @@ components:
         - status
         - message
         - data
+
+# --- Order Schemas ---
+
+    CheckoutRequest:
+      type: object
+      required:
+        - shipping_name
+        - shipping_address_line1
+        - shipping_city
+        - shipping_state
+        - shipping_postal_code
+      properties:
+        shipping_name:
+          type: string
+          maxLength: 150
+          description: Full name for shipping
+          example: "John Doe"
+        shipping_email:
+          type: string
+          format: email
+          maxLength: 150
+          nullable: true
+          description: Email for shipping notifications
+          example: "john@example.com"
+        shipping_phone:
+          type: string
+          maxLength: 20
+          nullable: true
+          description: Phone number for delivery contact
+          example: "+91 9876543210"
+        shipping_address_line1:
+          type: string
+          maxLength: 255
+          description: Primary shipping address
+          example: "123 Main St"
+        shipping_address_line2:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Secondary shipping address (apartment, suite, etc.)
+          example: "Near Park"
+        shipping_city:
+          type: string
+          maxLength: 100
+          description: Shipping city
+          example: "Mumbai"
+        shipping_state:
+          type: string
+          maxLength: 100
+          description: Shipping state (used for GST calculation)
+          example: "Maharashtra"
+        shipping_postal_code:
+          type: string
+          maxLength: 20
+          description: Shipping postal code
+          example: "400001"
+        shipping_country:
+          type: string
+          maxLength: 100
+          default: "India"
+          description: Shipping country
+          example: "India"
+        payment_gateway:
+          type: string
+          enum: [razorpay, stripe, cashfree, manual]
+          default: "razorpay"
+          description: Payment gateway to use
+          example: "razorpay"
+        payment_method:
+          type: string
+          enum: [card, upi, netbanking, wallet, cod, unknown]
+          default: "unknown"
+          description: Payment method
+          example: "card"
+        notes:
+          type: string
+          nullable: true
+          description: Optional order notes
+          example: "Please deliver after 6 PM"
+
+    CheckoutResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Order created successfully
+        data:
+          $ref: '#/components/schemas/OrderData'
+
+    GetMyOrdersResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Orders fetched successfully
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+
+    GetOrderByIdResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Order details retrieved successfully
+        data:
+          $ref: '#/components/schemas/OrderData'
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        order_number:
+          type: string
+          example: "ORD2026030901234"
+        user_id:
+          type: integer
+          example: 101
+        status:
+          type: string
+          enum: [pending, confirmed, processing, shipped, delivered, cancelled, completed, failed]
+          example: "pending"
+        subtotal_amount:
+          type: number
+          example: 44348.45
+        total_gst_amount:
+          type: number
+          example: 1330.45
+        total_amount:
+          type: number
+          example: 45678.90
+        shipping_name:
+          type: string
+          example: "John Doe"
+        shipping_email:
+          type: string
+          nullable: true
+          example: "john@example.com"
+        shipping_phone:
+          type: string
+          nullable: true
+          example: "+91 9876543210"
+        shipping_address_line1:
+          type: string
+          example: "123 Main St"
+        shipping_address_line2:
+          type: string
+          nullable: true
+          example: "Near Park"
+        shipping_city:
+          type: string
+          example: "Mumbai"
+        shipping_state:
+          type: string
+          example: "Maharashtra"
+        shipping_postal_code:
+          type: string
+          example: "400001"
+        shipping_country:
+          type: string
+          example: "India"
+        gst_type:
+          type: string
+          enum: [cgst_sgst, igst]
+          example: "igst"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-03-09T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-03-09T10:30:00Z"
+
+    OrderData:
+      type: object
+      properties:
+        order:
+          $ref: '#/components/schemas/Order'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        payment:
+          $ref: '#/components/schemas/Payment'
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 456
+        order_id:
+          type: integer
+          example: 123
+        product_id:
+          type: integer
+          example: 1
+        product_name:
+          type: string
+          example: "22K Gold Diamond Ring"
+        product_sku:
+          type: string
+          example: "RNG-GOLD-001"
+        quantity:
+          type: integer
+          example: 1
+        unit_price:
+          type: number
+          example: 45678.90
+        total_price:
+          type: number
+          example: 45678.90
+        metal_cost:
+          type: number
+          example: 25000.00
+        stone_cost:
+          type: number
+          example: 12000.00
+        making_charge:
+          type: number
+          example: 3000.00
+        wastage_amount:
+          type: number
+          example: 625.00
+        margin_amount:
+          type: number
+          example: 2217.45
+        gst_amount:
+          type: number
+          example: 1330.45
+        gst_percent:
+          type: number
+          example: 3.00
+
+    Payment:
+      type: object
+      properties:
+        order_id:
+          type: integer
+          example: 123
+        payment_gateway:
+          type: string
+          enum: [razorpay, stripe, cashfree, manual]
+          example: "razorpay"
+        payment_method:
+          type: string
+          enum: [card, upi, netbanking, wallet, cod, unknown]
+          example: "card"
+        amount:
+          type: number
+          example: 45678.90
+        status:
+          type: string
+          enum: [pending, success, failed]
+          example: "pending"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-03-09T10:30:00Z"
 
 paths:
   /auth/send-otp:
@@ -1664,3 +1938,249 @@ paths:
           description: Unauthorized
         '404':
           description: Cart not found
+
+  /orders/checkout:
+    post:
+      tags:
+        - Orders
+      summary: Place order from cart
+      description: Convert cart items into an order with shipping details and payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+            example:
+              shipping_name: "John Doe"
+              shipping_email: "john@example.com"
+              shipping_phone: "+91 9876543210"
+              shipping_address_line1: "123 Main St"
+              shipping_address_line2: "Near Park"
+              shipping_city: "Mumbai"
+              shipping_state: "Maharashtra"
+              shipping_postal_code: "400001"
+              shipping_country: "India"
+              payment_gateway: "razorpay"
+              payment_method: "card"
+              notes: "Please deliver after 6 PM"
+      responses:
+        '200':
+          description: Order placed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+              example:
+                status: true
+                message: "Order created successfully"
+                data:
+                  order:
+                    id: 123
+                    order_number: "ORD2026030901234"
+                    status: "pending"
+                    subtotal_amount: 44348.45
+                    total_gst_amount: 1330.45
+                    total_amount: 45678.90
+                    shipping_name: "John Doe"
+                    shipping_email: "john@example.com"
+                    shipping_phone: "+91 9876543210"
+                    shipping_address_line1: "123 Main St"
+                    shipping_address_line2: "Near Park"
+                    shipping_city: "Mumbai"
+                    shipping_state: "Maharashtra"
+                    shipping_postal_code: "400001"
+                    shipping_country: "India"
+                    gst_type: "igst"
+                    created_at: "2024-03-09T10:30:00Z"
+                    updated_at: "2024-03-09T10:30:00Z"
+                  items:
+                    - id: 456
+                      order_id: 123
+                      product_id: 1
+                      product_name: "22K Gold Diamond Ring"
+                      product_sku: "RNG-GOLD-001"
+                      quantity: 1
+                      unit_price: 45678.90
+                      total_price: 45678.90
+                      metal_cost: 25000.00
+                      stone_cost: 12000.00
+                      making_charge: 3000.00
+                      wastage_amount: 625.00
+                      margin_amount: 2217.45
+                      gst_amount: 1330.45
+                      gst_percent: 3.00
+                  payment:
+                    order_id: 123
+                    payment_gateway: "razorpay"
+                    payment_method: "card"
+                    amount: 45678.90
+                    status: "pending"
+                    created_at: "2024-03-09T10:30:00Z"
+        '400':
+          description: Bad Request - Cart empty or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Cart not found
+        '500':
+          description: Internal server error
+
+  /orders/getMyOrders:
+    get:
+      tags:
+        - Orders
+      summary: Get user orders
+      description: Retrieve all orders for the authenticated user
+      responses:
+        '200':
+          description: Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMyOrdersResponse'
+              example:
+                status: true
+                message: "Orders fetched successfully"
+                data:
+                  - id: 123
+                    order_number: "ORD2026030901234"
+                    user_id: 101
+                    status: "pending"
+                    subtotal_amount: 44348.45
+                    total_gst_amount: 1330.45
+                    total_amount: 45678.90
+                    shipping_name: "John Doe"
+                    shipping_email: "john@example.com"
+                    shipping_phone: "+91 9876543210"
+                    shipping_address_line1: "123 Main St"
+                    shipping_city: "Mumbai"
+                    shipping_state: "Maharashtra"
+                    shipping_postal_code: "400001"
+                    shipping_country: "India"
+                    gst_type: "igst"
+                    created_at: "2024-03-09T10:30:00Z"
+                    updated_at: "2024-03-09T10:30:00Z"
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /orders/getOrderById/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order details
+      description: Retrieve detailed information about a specific order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 123
+      responses:
+        '200':
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderByIdResponse'
+              example:
+                status: true
+                message: "Order details retrieved successfully"
+                data:
+                  order:
+                    id: 123
+                    order_number: "ORD2026030901234"
+                    user_id: 101
+                    status: "pending"
+                    subtotal_amount: 44348.45
+                    total_gst_amount: 1330.45
+                    total_amount: 45678.90
+                    shipping_name: "John Doe"
+                    shipping_email: "john@example.com"
+                    shipping_phone: "+91 9876543210"
+                    shipping_address_line1: "123 Main St"
+                    shipping_address_line2: "Near Park"
+                    shipping_city: "Mumbai"
+                    shipping_state: "Maharashtra"
+                    shipping_postal_code: "400001"
+                    shipping_country: "India"
+                    gst_type: "igst"
+                    created_at: "2024-03-09T10:30:00Z"
+                    updated_at: "2024-03-09T10:30:00Z"
+                  items:
+                    - id: 456
+                      order_id: 123
+                      product_id: 1
+                      product_name: "22K Gold Diamond Ring"
+                      product_sku: "RNG-GOLD-001"
+                      quantity: 1
+                      unit_price: 45678.90
+                      total_price: 45678.90
+                      metal_cost: 25000.00
+                      stone_cost: 12000.00
+                      making_charge: 3000.00
+                      wastage_amount: 625.00
+                      margin_amount: 2217.45
+                      gst_amount: 1330.45
+                      gst_percent: 3.00
+                  payment:
+                    order_id: 123
+                    payment_gateway: "razorpay"
+                    payment_method: "card"
+                    amount: 45678.90
+                    status: "pending"
+                    created_at: "2024-03-09T10:30:00Z"
+        '401':
+          description: Unauthorized
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+
+  /orders/cancelOrder/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Cancel order
+      description: Cancel a pending order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 123
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: true
+                message: "Order canceled successfully"
+                data: null
+        '400':
+          description: Cannot cancel order - already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: false
+                message: "Order cannot be canceled as it has already been shipped"
+                data: null
+        '401':
+          description: Unauthorized
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error

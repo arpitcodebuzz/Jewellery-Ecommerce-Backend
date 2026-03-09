@@ -1,177 +1,153 @@
 import db from "../../common/config/db.js";
 
-const STORE_STATE = (process.env.STORE_STATE || "Gujarat").trim().toLowerCase();
-
 function round2(value) {
   return Number(Number(value || 0).toFixed(2));
 }
 
-function normalizeText(value) {
+function normalizeState(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function buildOrderNumber() {
+async function generateOrderNumber() {
   const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  const rand = String(Math.floor(1000 + Math.random() * 9000));
-  return `ORD${y}${m}${d}${rand}`;
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `ORD${yyyy}${mm}${dd}${random}`;
 }
 
-async function getLatestMetalRate(trx, metal_type, purity_code) {
+async function getLatestMetalRate(trx, metalType, purityCode) {
   return trx("metal_rates")
-    .where({ metal_type, purity_code })
+    .where({
+      metal_type: metalType,
+      purity_code: purityCode,
+    })
     .orderBy("effective_from", "desc")
-    .orderBy("id", "desc")
     .first();
 }
 
-async function getLatestStoneRate(
-  trx,
-  stone_type,
-  clarity_grade,
-  color_grade,
-  cut_grade
-) {
-  const exact = await trx("stone_rates")
-    .where({
-      stone_type,
-      clarity_grade: clarity_grade ?? null,
-      color_grade: color_grade ?? null,
-      cut_grade: cut_grade ?? null,
-      status: "active",
-    })
-    .orderBy("effective_from", "desc")
-    .orderBy("id", "desc")
-    .first();
+async function getLatestStoneRate(trx, stone) {
+  const query = trx("stone_rates").where({
+    stone_type: stone.stone_type,
+  });
 
-  if (exact) return exact;
+  if (stone.clarity_grade !== null && stone.clarity_grade !== undefined) {
+    query.andWhere("clarity_grade", stone.clarity_grade);
+  } else {
+    query.whereNull("clarity_grade");
+  }
 
-  const fallback = await trx("stone_rates")
-    .where({ stone_type, status: "active" })
-    .andWhere((qb) => {
-      qb.whereNull("clarity_grade").orWhere("clarity_grade", clarity_grade ?? null);
-    })
-    .andWhere((qb) => {
-      qb.whereNull("color_grade").orWhere("color_grade", color_grade ?? null);
-    })
-    .andWhere((qb) => {
-      qb.whereNull("cut_grade").orWhere("cut_grade", cut_grade ?? null);
-    })
-    .orderBy("effective_from", "desc")
-    .orderBy("id", "desc")
-    .first();
+  if (stone.color_grade !== null && stone.color_grade !== undefined) {
+    query.andWhere("color_grade", stone.color_grade);
+  } else {
+    query.whereNull("color_grade");
+  }
 
-  return fallback || null;
+  if (stone.cut_grade !== null && stone.cut_grade !== undefined) {
+    query.andWhere("cut_grade", stone.cut_grade);
+  } else {
+    query.whereNull("cut_grade");
+  }
+
+  return query.orderBy("effective_from", "desc").first();
 }
 
 async function calculateProductLivePrice(trx, productId, shippingState) {
-  const product = await trx("products")
-    .select(
-      "id",
-      "name",
-      "sku",
-      "making_charge_type",
-      "making_charge_value",
-      "wastage_percent",
-      "margin_percent",
-      "gst_percent",
-      "status"
-    )
-    .where({ id: productId })
-    .first();
+  const product = await trx("products").where({ id: productId }).first();
 
   if (!product) {
-   return { status: false, statusCode: 404, message: "Product not found" };
+    throw new Error(`Product not found for ID ${productId}`);
   }
 
-  if (product.status !== "active") {
-   return { status: false, statusCode: 400, message: "Product is not active" };
-  }
+  const metals = await trx("product_metal_components").where({
+    product_id: productId,
+  });
 
-  const metalComponents = await trx("product_metal_components")
-    .select("metal_type", "purity_code", "weight_grams")
-    .where({ product_id: productId });
+  const stones = await trx("product_stone_components").where({
+    product_id: productId,
+  });
 
-  const stoneComponents = await trx("product_stone_components")
-    .select(
-      "stone_type",
-      "clarity_grade",
-      "color_grade",
-      "cut_grade",
-      "weight_carat",
-      "piece_count"
-    )
-    .where({ product_id: productId });
-
-  let totalMetalWeight = 0;
   let metalCost = 0;
+  let totalMetalWeight = 0;
 
-  for (const metal of metalComponents) {
-    const latestRate = await getLatestMetalRate(
+  for (const metal of metals) {
+    const rateRow = await getLatestMetalRate(
       trx,
       metal.metal_type,
       metal.purity_code
     );
 
-    if (!latestRate) {
-     return { status: false, statusCode: 400, message: "Latest metal rate not found" };
+    if (!rateRow) {
+      throw new Error(
+        `Metal rate not found for ${metal.metal_type} ${metal.purity_code}`
+      );
     }
 
     const weight = Number(metal.weight_grams || 0);
-    const rate = Number(latestRate.rate_per_gram || 0);
+    const rate = Number(rateRow.rate_per_gram || 0);
 
-    totalMetalWeight += weight;
     metalCost += weight * rate;
+    totalMetalWeight += weight;
   }
 
   let stoneCost = 0;
 
-  for (const stone of stoneComponents) {
-    const latestRate = await getLatestStoneRate(
-      trx,
-      stone.stone_type,
-      stone.clarity_grade,
-      stone.color_grade,
-      stone.cut_grade
-    );
+  for (const stone of stones) {
+    const rateRow = await getLatestStoneRate(trx, stone);
 
-    if (!latestRate) {
-     return { status: false, statusCode: 400, message: "Latest stone rate not found" };
+    if (!rateRow) {
+      throw new Error(
+        `Stone rate not found for ${stone.stone_type} / ${
+          stone.clarity_grade || "NA"
+        } / ${stone.color_grade || "NA"} / ${stone.cut_grade || "NA"}`
+      );
     }
 
-    const carat = Number(stone.weight_carat || 0);
-    const rate = Number(latestRate.rate_per_carat || 0);
+    const weightCarat = Number(stone.weight_carat || 0);
+    const rate = Number(rateRow.rate_per_carat || 0);
 
-    stoneCost += carat * rate;
+    stoneCost += weightCarat * rate;
   }
 
-  const makingCharge =
-    product.making_charge_type === "per_gram"
-      ? totalMetalWeight * Number(product.making_charge_value || 0)
-      : Number(product.making_charge_value || 0);
+  const makingChargeValue = Number(product.making_charge_value || 0);
+  let makingCharge = 0;
+
+  if (product.making_charge_type === "per_gram") {
+    makingCharge = totalMetalWeight * makingChargeValue;
+  } else {
+    makingCharge = makingChargeValue;
+  }
 
   const wastageAmount =
     metalCost * (Number(product.wastage_percent || 0) / 100);
 
-  const subtotalBeforeMargin = metalCost + stoneCost + makingCharge + wastageAmount;
+  const subtotalBeforeMargin =
+    metalCost + stoneCost + makingCharge + wastageAmount;
+
   const marginAmount =
     subtotalBeforeMargin * (Number(product.margin_percent || 0) / 100);
 
   const taxableAmount = subtotalBeforeMargin + marginAmount;
+
   const gstPercent = Number(product.gst_percent || 3);
 
-  const gstType =
-    normalizeText(shippingState) === STORE_STATE ? "cgst_sgst" : "igst";
+  const storeState = "gujarat";
+  const customerState = normalizeState(shippingState);
+
+  let gstType = "igst";
+  if (customerState === storeState) {
+    gstType = "cgst_sgst";
+  }
 
   const gstAmount = taxableAmount * (gstPercent / 100);
   const unitPrice = taxableAmount + gstAmount;
 
   return {
-    product_id: product.id,
-    product_name: product.name,
-    product_sku: product.sku,
+    product,
+    gst_type: gstType,
+    unit_price: round2(unitPrice),
+    taxable_amount: round2(taxableAmount),
     metal_cost: round2(metalCost),
     stone_cost: round2(stoneCost),
     making_charge: round2(makingCharge),
@@ -179,87 +155,78 @@ async function calculateProductLivePrice(trx, productId, shippingState) {
     margin_amount: round2(marginAmount),
     gst_amount: round2(gstAmount),
     gst_percent: round2(gstPercent),
-    gst_type: gstType,
-    unit_price: round2(unitPrice),
   };
 }
 
-export async function checkoutOrder(userId, payload) {
-  return db.transaction(async (trx) => {
+export const checkOutOrderService = async (userId, payload) => {
+  const trx = await db.transaction();
+
+  try {
     const cart = await trx("carts")
       .where({ user_id: userId, status: "active" })
-      .orderBy("id", "desc")
       .first();
 
     if (!cart) {
+      await trx.rollback();
       return {
         status: false,
         statusCode: 404,
-        message: "Active cart not found",
+        message: "Cart not found",
+        data: null,
       };
     }
 
-    const cartItems = await trx("cart_items")
-      .select("id", "cart_id", "product_id", "quantity")
-      .where({ cart_id: cart.id });
+    const cartItems = await trx("cart_items").where({ cart_id: cart.id });
 
     if (!cartItems.length) {
+      await trx.rollback();
       return {
         status: false,
-        statusCode: 400,
-        message: "Cart is empty",
+        statusCode: 404,
+        message: "Cart items not found",
+        data: null,
       };
     }
 
-    const orderItemsPayload = [];
+    const calculatedItems = [];
     let subtotalAmount = 0;
     let totalGstAmount = 0;
     let totalAmount = 0;
-    let commonGstType = null;
+    let finalGstType = "igst";
 
     for (const item of cartItems) {
-      const pricing = await calculateProductLivePrice(
+      const quantity = Number(item.quantity || 1);
+
+      const livePrice = await calculateProductLivePrice(
         trx,
         item.product_id,
         payload.shipping_state
       );
 
-      const quantity = Number(item.quantity || 1);
+      const lineSubtotal = round2(livePrice.taxable_amount * quantity);
+      const lineGst = round2(livePrice.gst_amount * quantity);
+      const lineTotal = round2(lineSubtotal + lineGst);
 
-      const totalPrice = round2(pricing.unit_price * quantity);
-      const totalMetalCost = round2(pricing.metal_cost * quantity);
-      const totalStoneCost = round2(pricing.stone_cost * quantity);
-      const totalMakingCharge = round2(pricing.making_charge * quantity);
-      const totalWastageAmount = round2(pricing.wastage_amount * quantity);
-      const totalMarginAmount = round2(pricing.margin_amount * quantity);
-      const totalItemGstAmount = round2(pricing.gst_amount * quantity);
+      subtotalAmount += lineSubtotal;
+      totalGstAmount += lineGst;
+      totalAmount += lineTotal;
 
-      subtotalAmount +=
-        totalMetalCost +
-        totalStoneCost +
-        totalMakingCharge +
-        totalWastageAmount +
-        totalMarginAmount;
+      finalGstType = livePrice.gst_type;
 
-      totalGstAmount += totalItemGstAmount;
-      totalAmount += totalPrice;
-
-      commonGstType = pricing.gst_type;
-
-      orderItemsPayload.push({
-        product_id: pricing.product_id,
+      calculatedItems.push({
+        product_id: item.product_id,
         quantity,
-        product_name: pricing.product_name,
-        product_sku: pricing.product_sku,
-        unit_price: pricing.unit_price,
-        total_price: totalPrice,
-        metal_cost: totalMetalCost,
-        stone_cost: totalStoneCost,
-        making_charge: totalMakingCharge,
-        wastage_amount: totalWastageAmount,
-        margin_amount: totalMarginAmount,
-        gst_amount: totalItemGstAmount,
-        gst_percent: pricing.gst_percent,
+        product_name: livePrice.product.name,
+        product_sku: livePrice.product.sku,
+        unit_price: livePrice.unit_price,
+        total_price: lineTotal,
+        metal_cost: round2(livePrice.metal_cost * quantity),
+        stone_cost: round2(livePrice.stone_cost * quantity),
+        making_charge: round2(livePrice.making_charge * quantity),
+        wastage_amount: round2(livePrice.wastage_amount * quantity),
+        margin_amount: round2(livePrice.margin_amount * quantity),
+        gst_amount: lineGst,
+        gst_percent: livePrice.gst_percent,
       });
     }
 
@@ -267,179 +234,180 @@ export async function checkoutOrder(userId, payload) {
     totalGstAmount = round2(totalGstAmount);
     totalAmount = round2(totalAmount);
 
-    let orderNumber = buildOrderNumber();
-    let exists = await trx("orders").where({ order_number: orderNumber }).first();
+ let orderNumber;
+let existingOrder;
 
-    while (exists) {
-      orderNumber = buildOrderNumber();
-      exists = await trx("orders").where({ order_number: orderNumber }).first();
-    }
+do {
+  orderNumber = await generateOrderNumber();
+  existingOrder = await trx("orders")
+    .where({ order_number: orderNumber })
+    .first();
+} while (existingOrder);
 
-    const [orderId] = await trx("orders").insert({
+    const orderPayload = {
       user_id: userId,
       order_number: orderNumber,
       status: "pending",
       subtotal_amount: subtotalAmount,
       total_gst_amount: totalGstAmount,
       total_amount: totalAmount,
+
       shipping_name: payload.shipping_name,
       shipping_email: payload.shipping_email || null,
       shipping_phone: payload.shipping_phone || null,
+
       shipping_address_line1: payload.shipping_address_line1,
       shipping_address_line2: payload.shipping_address_line2 || null,
       shipping_city: payload.shipping_city,
       shipping_state: payload.shipping_state,
       shipping_postal_code: payload.shipping_postal_code,
       shipping_country: payload.shipping_country || "India",
-      gst_type: commonGstType || "igst",
-      notes: payload.notes || null,
-    });
 
-    const preparedOrderItems = orderItemsPayload.map((item) => ({
+      gst_type: finalGstType,
+      notes: payload.notes || null,
+    };
+
+    const [orderId] = await trx("orders").insert(orderPayload);
+
+    const orderItemsPayload = calculatedItems.map((item) => ({
       order_id: orderId,
-      ...item,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      product_name: item.product_name,
+      product_sku: item.product_sku,
+      unit_price: item.unit_price,
+      total_price: item.total_price,
+      metal_cost: item.metal_cost,
+      stone_cost: item.stone_cost,
+      making_charge: item.making_charge,
+      wastage_amount: item.wastage_amount,
+      margin_amount: item.margin_amount,
+      gst_amount: item.gst_amount,
+      gst_percent: item.gst_percent,
     }));
 
-    await trx("order_items").insert(preparedOrderItems);
+    await trx("order_items").insert(orderItemsPayload);
 
-    const [paymentId] = await trx("payments").insert({
+    await trx("payments").insert({
       order_id: orderId,
-      payment_gateway: payload.payment_gateway || "razorpay",
-      payment_method: payload.payment_method || "unknown",
+      payment_gateway: payload.payment_gateway,
+      payment_method: payload.payment_method,
       amount: totalAmount,
       status: "pending",
     });
 
-    await trx("carts")
-      .where({ id: cart.id })
-      .update({
-        status: "converted",
-        updated_at: trx.fn.now(),
-      });
+    await trx("carts").where({ id: cart.id }).update({
+      status: "converted",
+      updated_at: trx.fn.now(),
+    });
 
-    const createdOrder = await trx("orders").where({ id: orderId }).first();
-    const createdOrderItems = await trx("order_items")
-      .where({ order_id: orderId })
-      .orderBy("id", "asc");
-    const createdPayment = await trx("payments").where({ id: paymentId }).first();
+    await trx.commit();
+
+    const createdOrder = await db("orders").where({ id: orderId }).first();
+    const createdItems = await db("order_items").where({ order_id: orderId });
+    const payment = await db("payments").where({ order_id: orderId }).first();
 
     return {
       status: true,
-      statusCode: 201,
-      message: "Order placed successfully",
+      statusCode: 200,
+      message: "Order created successfully",
       data: {
         order: createdOrder,
-        items: createdOrderItems,
-        payment: createdPayment,
+        items: createdItems,
+        payment,
       },
     };
-  });
-}
+  } catch (error) {
+    await trx.rollback();
+    return {
+      status: false,
+      statusCode: 400,
+      message: error.message,
+      data: null,
+    };
+  }
+};
 
-export async function getMyOrders(userId) {
-  const rows = await db("orders")
-    .select(
-      "id",
-      "order_number",
-      "status",
-      "subtotal_amount",
-      "total_gst_amount",
-      "total_amount",
-      "shipping_name",
-      "shipping_state",
-      "created_at"
-    )
+
+export async function getMyOrdersService(userId) {
+  if (!userId) {
+    return {
+      status: false,
+      statusCode: 401,
+      message: "Unauthorized",
+    };
+  }
+
+  const orders = await db("orders")
     .where({ user_id: userId })
     .orderBy("id", "desc");
+
+    if (orders.length === 0) {
+      return {
+        status: true,
+        statusCode: 200,
+        message: "No orders found",
+        data: [],
+      };
+    }
 
   return {
     status: true,
     statusCode: 200,
     message: "Orders fetched successfully",
-    data: rows,
+    data: orders,
   };
 }
 
-export async function getMyOrderById(userId, orderId) {
-  const order = await db("orders")
-    .where({ id: orderId, user_id: userId })
-    .first();
+
+export const getOrderByIdService = async (orderId) => {
+  const order = await db("orders").where({ id: orderId }).first();
 
   if (!order) {
-    return {
-      status: false,
-      statusCode: 404,
-      message: "Order not found",
-    };
+    return { status: false, statusCode: 404, message: "Order not found" };
+  }
+  const item = await db("order_items").where({ order_id: orderId }).orderBy("id", "asc");
+  const payment = await db("payments").where({ order_id: orderId }).first();
+
+  return { status: true, statusCode: 200, data: { order, items: item, payment } };
+};
+
+
+
+export const cancelOrderService = async (orderId) => {
+  const order = await db("orders").where({ id: orderId }).first();
+
+  if (!order) {
+    return { status: false, statusCode: 404, message: "Order not found" };
   }
 
-  const items = await db("order_items")
-    .where({ order_id: order.id })
-    .orderBy("id", "asc");
 
-  const payment = await db("payments")
-    .where({ order_id: order.id })
-    .orderBy("id", "desc")
-    .first();
-
-  return {
-    status: true,
-    statusCode: 200,
-    message: "Order details fetched successfully",
-    data: {
-      order,
-      items,
-      payment,
-    },
-  };
-}
-
-export async function getAllOrdersForAdmin() {
-  const rows = await db("orders")
-    .select(
-      "id",
-      "user_id",
-      "order_number",
-      "status",
-      "subtotal_amount",
-      "total_gst_amount",
-      "total_amount",
-      "shipping_name",
-      "shipping_state",
-      "created_at"
-    )
-    .orderBy("id", "desc");
-
-  return {
-    status: true,
-    statusCode: 200,
-    message: "All orders fetched successfully",
-    data: rows,
-  };
-}
-
-export async function updateOrderStatus(orderId, status) {
-  const existing = await db("orders").where({ id: orderId }).first();
-
-  if (!existing) {
-    return {
-      status: false,
-      statusCode: 404,
-      message: "Order not found",
-    };
+  if (order.status === " canceled") {
+    return { status: false, statusCode: 400, message: "Order already canceled" };
   }
 
-  await db("orders").where({ id: orderId }).update({
-    status,
-    updated_at: db.fn.now(),
-  });
+  if(order.status === "shipped") {
+    return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been shipped" };
+  }
 
-  const updated = await db("orders").where({ id: orderId }).first();
+  if(order.status === "delivered") {
+    return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been delivered" };
+  }
 
-  return {
-    status: true,
-    statusCode: 200,
-    message: "Order status updated successfully",
-    data: updated,
-  };
+  if(order.status === "processing") {
+    return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been processed" };
+  }
+
+  if(order.status === "completed") {
+    return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been completed" };
+  }
+
+  if(order.status === "failed") {
+    return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been failed" };
+  }
+
+
+ await db("orders").where({ id: orderId }).update({ status: "canceled" });
+ return { status: true, statusCode: 200, message: "Order canceled successfully" };
+
 }
