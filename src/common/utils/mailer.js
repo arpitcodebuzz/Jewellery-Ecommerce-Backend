@@ -453,17 +453,17 @@ export const sendOrderPlacedEmail = async (payload) => {
     shipping = {},
     items = [],
     totals = {},
-    baseUrl = "https://2prbc8z4-5000.inc1.devtunnels.ms/",
   } = payload;
 
   const currency = totals.currencySymbol ?? "₹";
 
-  const safe = (v) => String(v ?? "").replace(/[<>&"]/g, (c) => ({
-    "<": "&lt;",
-    ">": "&gt;",
-    "&": "&amp;",
-    '"': "&quot;",
-  }[c]));
+  const safe = (v) =>
+    String(v ?? "").replace(/[<>&"]/g, (c) => ({
+      "<": "&lt;",
+      ">": "&gt;",
+      "&": "&amp;",
+      '"': "&quot;",
+    }[c]));
 
   const money = (n) => {
     const num = Number(n ?? 0);
@@ -530,7 +530,6 @@ export const sendOrderPlacedEmail = async (payload) => {
             color:#111827;
           ">
 
-            <!-- Header -->
             <tr>
               <td style="padding:20px 22px; background: linear-gradient(135deg,#0b1220 0%, #111827 100%); color:#fff;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
@@ -564,7 +563,6 @@ export const sendOrderPlacedEmail = async (payload) => {
               </td>
             </tr>
 
-            <!-- Order Meta -->
             <tr>
               <td style="padding:18px 22px 6px 22px;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
@@ -605,7 +603,6 @@ export const sendOrderPlacedEmail = async (payload) => {
               </td>
             </tr>
 
-            <!-- Shipping + Summary -->
             <tr>
               <td style="padding:10px 22px 0 22px;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
@@ -636,16 +633,6 @@ export const sendOrderPlacedEmail = async (payload) => {
                             <td style="font-size:12px; color:#6b7280; padding:3px 0;">GST</td>
                             <td align="right" style="font-size:12px; color:#111827; font-weight:900; padding:3px 0;">${money(totals.gst)}</td>
                           </tr>
-                          ${Number(totals.shippingFee || 0) > 0 ? `
-                          <tr>
-                            <td style="font-size:12px; color:#6b7280; padding:3px 0;">Shipping</td>
-                            <td align="right" style="font-size:12px; color:#111827; font-weight:900; padding:3px 0;">${money(totals.shippingFee)}</td>
-                          </tr>` : ""}
-                          ${Number(totals.discount || 0) > 0 ? `
-                          <tr>
-                            <td style="font-size:12px; color:#6b7280; padding:3px 0;">Discount</td>
-                            <td align="right" style="font-size:12px; color:#111827; font-weight:900; padding:3px 0;">- ${money(totals.discount)}</td>
-                          </tr>` : ""}
                           <tr>
                             <td colspan="2" style="padding-top:8px;">
                               <div style="height:1px; background:#f1f5f9;"></div>
@@ -656,10 +643,6 @@ export const sendOrderPlacedEmail = async (payload) => {
                             <td align="right" style="font-size:13px; color:#111827; font-weight:950; padding:8px 0;">${money(totals.total)}</td>
                           </tr>
                         </table>
-
-                        <div style="margin-top:8px; font-size:11px; color:#9ca3af; line-height:1.5;">
-                          Totals are shown as per your order at checkout.
-                        </div>
                       </div>
                     </td>
                   </tr>
@@ -667,22 +650,15 @@ export const sendOrderPlacedEmail = async (payload) => {
               </td>
             </tr>
 
-            <!-- Items -->
             <tr>
               <td style="padding:16px 22px 10px 22px;">
                 <div style="font-size:14px; font-weight:950; color:#111827;">Items in your order</div>
-
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px;">
-                  ${itemsHtml || `
-                    <tr><td style="padding:14px; border:1px solid #ebe6da; border-radius:16px; background:#faf9f6; font-size:13px; color:#6b7280;">
-                      Items will appear here.
-                    </td></tr>
-                  `}
+                  ${itemsHtml}
                 </table>
               </td>
             </tr>
 
-            <!-- Footer -->
             <tr>
               <td style="padding:18px 22px 22px 22px; border-top:1px solid #f1f5f9;">
                 <div style="font-size:12px; color:#6b7280; line-height:1.7;">
@@ -695,9 +671,6 @@ export const sendOrderPlacedEmail = async (payload) => {
                 <div style="margin-top:10px; font-size:12px; color:#9ca3af;">
                   © ${new Date().getFullYear()} RV Jewellery. All rights reserved.
                 </div>
-                <div style="margin-top:6px; font-size:11px; color:#9ca3af;">
-                  This is an automated message. Please do not reply.
-                </div>
               </td>
             </tr>
 
@@ -709,49 +682,14 @@ export const sendOrderPlacedEmail = async (payload) => {
   </body>
 </html>
   `;
-  // =====================================================
-  // 🔽 NEW PART — GENERATE & SAVE INVOICE PDF
-  // =====================================================
 
-  const invoiceData = {
-    invoiceNumber: `INV-${orderNumber}`,
-    orderNumber,
-    invoiceDateText: orderDateText || new Date().toLocaleString(),
-    currencySymbol: currency,
-
-    customer: {
-      name: customerName,
-      email: to,
-      phone: shipping.phone,
-    },
-
-    shipping: {
-      name: shipping.name || customerName,
-      address1: shipping.address1,
-      address2: shipping.address2,
-      city: shipping.city,
-      state: shipping.state,
-      pincode: shipping.pincode,
-      country: shipping.country || "India",
-    },
-
-    items: items.map((it) => ({
-      name: it.name,
-      sku: it.sku,
-      qty: it.qty,
-      unitPrice: it.unitPrice,
-    })),
-
-    totals,
-  };
-
-  const fileName = `Invoice-${orderNumber}.pdf`;
-
-  const { filePath, publicUrl } = await generateAndSaveInvoicePdf({
-    invoice: invoiceData,
-    baseUrl,
-    fileName,
+  return transporter.sendMail({
+    from: `"RV Jewellery" <${process.env.EMAIL}>`,
+    to,
+    subject,
+    html,
   });
+};
 
   // (Optional but recommended)
   // Save publicUrl into orders.invoice_url column in DB
@@ -759,18 +697,3 @@ export const sendOrderPlacedEmail = async (payload) => {
   // =====================================================
   // 🔽 SEND EMAIL WITH ATTACHMENT
   // =====================================================
-
-  return transporter.sendMail({
-    from: `"RV Jewellery" <${process.env.EMAIL}>`,
-    to,
-    subject,
-    html,
-    attachments: [
-      {
-        filename: fileName,
-        path: filePath, // attaching saved PDF
-        contentType: "application/pdf",
-      },
-    ],
-  });
-};

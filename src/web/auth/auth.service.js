@@ -54,37 +54,7 @@ export const sendOtpService = async ({ email, purpose }) => {
     expires_at: db.raw("DATE_ADD(NOW(), INTERVAL 5 MINUTE)")
   });
 
-  // await sendOtpEmail(user.email, otp,purpose);
-  await sendOrderPlacedEmail({
-  to: user.email,
-  customerName: "Bhushan",
-  orderNumber: "ORD20260227001",
-  orderDateText: "27 Feb 2026, 09:18 AM",
-  trackUrl: "https://yourapp.com/orders/ORD20260227001",
-  shipping: {
-    name: "Bhushan",
-    phone: "99999 99999",
-    address1: "B/12, Shree Complex",
-    address2: "Near Riverfront",
-    city: "Ahmedabad",
-    state: "Gujarat",
-    pincode: "380001",
-    country: "India",
-  },
-  items: [
-    { name: "22K Gold Diamond Ring", sku: "RG-004", qty: 1, unitPrice: 40396.19, imageUrl: "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?auto=format&fit=crop&w=900&q=80" },
-    { name: "Earings Set", sku: "BR-005", qty: 2, unitPrice: 4999.0, imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFsN8NrfCYyHrbB5RomfCye0Fn5Gm6fz1rtA&s" },
-  ],
-  totals: {
-    subtotal: 39219.60,
-    gst: 1176.59,
-    shippingFee: 0,
-    discount: 0,
-    total: 40396.19,
-    currencySymbol: "₹",
-  },
-});
-
+   await sendOtpEmail(user.email, otp,purpose);
   return {
     status: true,
     statusCode: 200,

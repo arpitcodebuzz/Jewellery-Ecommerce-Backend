@@ -1,4 +1,5 @@
 import db from "../../common/config/db.js";
+import razorpay from "../../common/config/razorpay.js";
 
 function round2(value) {
   return Number(Number(value || 0).toFixed(2));
@@ -98,8 +99,7 @@ async function calculateProductLivePrice(trx, productId, shippingState) {
 
     if (!rateRow) {
       throw new Error(
-        `Stone rate not found for ${stone.stone_type} / ${
-          stone.clarity_grade || "NA"
+        `Stone rate not found for ${stone.stone_type} / ${stone.clarity_grade || "NA"
         } / ${stone.color_grade || "NA"} / ${stone.cut_grade || "NA"}`
       );
     }
@@ -234,15 +234,15 @@ export const checkOutOrderService = async (userId, payload) => {
     totalGstAmount = round2(totalGstAmount);
     totalAmount = round2(totalAmount);
 
- let orderNumber;
-let existingOrder;
+    let orderNumber;
+    let existingOrder;
 
-do {
-  orderNumber = await generateOrderNumber();
-  existingOrder = await trx("orders")
-    .where({ order_number: orderNumber })
-    .first();
-} while (existingOrder);
+    do {
+      orderNumber = await generateOrderNumber();
+      existingOrder = await trx("orders")
+        .where({ order_number: orderNumber })
+        .first();
+    } while (existingOrder);
 
     const orderPayload = {
       user_id: userId,
@@ -290,11 +290,32 @@ do {
 
     await trx("payments").insert({
       order_id: orderId,
-      payment_gateway: payload.payment_gateway,
-      payment_method: payload.payment_method,
+      payment_gateway: "razorpay",
+      payment_method: null,
       amount: totalAmount,
       status: "pending",
     });
+
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(Number(totalAmount) * 100), // paise
+      currency: "INR",
+      receipt: orderNumber,
+      notes: {
+        local_order_id: String(orderId),
+        local_order_number: orderNumber,
+        user_id: String(userId),
+      },
+    });
+
+
+    await trx("payments")
+      .where({ order_id: orderId })
+      .update({
+        gateway_order_id: razorpayOrder.id,
+        gateway_response: JSON.stringify(razorpayOrder),
+        updated_at: trx.fn.now(),
+      });
+
 
     await trx("carts").where({ id: cart.id }).update({
       status: "converted",
@@ -307,14 +328,23 @@ do {
     const createdItems = await db("order_items").where({ order_id: orderId });
     const payment = await db("payments").where({ order_id: orderId }).first();
 
+
     return {
       status: true,
       statusCode: 200,
       message: "Order created successfully",
       data: {
-        order: createdOrder,
-        items: createdItems,
-        payment,
+        orderId,
+        orderNumber,
+        amount: totalAmount,
+        currency: "INR",
+        razorpayOrderId: razorpayOrder.id,
+        key: process.env.RAZORPAY_KEY_ID,
+        customer: {
+          name: payload.shipping_name,
+          email: payload.shipping_email || "",
+          contact: payload.shipping_phone || "",
+        },
       },
     };
   } catch (error) {
@@ -342,14 +372,14 @@ export async function getMyOrdersService(userId) {
     .where({ user_id: userId })
     .orderBy("id", "desc");
 
-    if (orders.length === 0) {
-      return {
-        status: true,
-        statusCode: 200,
-        message: "No orders found",
-        data: [],
-      };
-    }
+  if (orders.length === 0) {
+    return {
+      status: true,
+      statusCode: 200,
+      message: "No orders found",
+      data: [],
+    };
+  }
 
   return {
     status: true,
@@ -386,28 +416,28 @@ export const cancelOrderService = async (orderId) => {
     return { status: false, statusCode: 400, message: "Order already canceled" };
   }
 
-  if(order.status === "shipped") {
+  if (order.status === "shipped") {
     return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been shipped" };
   }
 
-  if(order.status === "delivered") {
+  if (order.status === "delivered") {
     return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been delivered" };
   }
 
-  if(order.status === "processing") {
+  if (order.status === "processing") {
     return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been processed" };
   }
 
-  if(order.status === "completed") {
+  if (order.status === "completed") {
     return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been completed" };
   }
 
-  if(order.status === "failed") {
+  if (order.status === "failed") {
     return { status: false, statusCode: 400, message: "Order cannot be canceled as it has already been failed" };
   }
 
 
- await db("orders").where({ id: orderId }).update({ status: "canceled" });
- return { status: true, statusCode: 200, message: "Order canceled successfully" };
+  await db("orders").where({ id: orderId }).update({ status: "canceled" });
+  return { status: true, statusCode: 200, message: "Order canceled successfully" };
 
 }

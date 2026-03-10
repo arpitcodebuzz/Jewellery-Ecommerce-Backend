@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RV Jewellery - Razorpay Test UI</title>
+  <link rel="stylesheet" href="./index.css" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <div class="page">
+    <div class="container">
+      <div class="header">
+        <h1>RV Jewellery</h1>
+        <p>Razorpay Sandbox Test Checkout</p>
+      </div>
+
+      <div class="card">
+        <h2>Backend Settings</h2>
+
+        <label for="apiBaseUrl">API Base URL</label>
+        <input
+          id="apiBaseUrl"
+          type="text"
+          value="http://localhost:5000/api"
+          placeholder="http://localhost:5000/api"
+        />
+
+        <label for="authToken">Bearer Token</label>
+        <input
+          id="authToken"
+          type="text"
+          placeholder="Paste token here if your checkout API is protected"
+        />
+      </div>
+
+      <div class="card">
+        <h2>Checkout Details</h2>
+
+        <label for="shipping_name">Shipping Name</label>
+        <input id="shipping_name" type="text" value="John Doe" />
+
+        <label for="shipping_email">Shipping Email</label>
+        <input id="shipping_email" type="email" value="john@example.com" />
+
+        <label for="shipping_phone">Shipping Phone</label>
+        <input id="shipping_phone" type="text" value="+919876543210" />
+
+        <label for="shipping_address_line1">Address Line 1</label>
+        <input id="shipping_address_line1" type="text" value="123 Main St" />
+
+        <label for="shipping_address_line2">Address Line 2</label>
+        <input id="shipping_address_line2" type="text" value="Near Park" />
+
+        <label for="shipping_city">City</label>
+        <input id="shipping_city" type="text" value="Mumbai" />
+
+        <label for="shipping_state">State</label>
+        <input id="shipping_state" type="text" value="Maharashtra" />
+
+        <label for="shipping_postal_code">Postal Code</label>
+        <input id="shipping_postal_code" type="text" value="400001" />
+
+        <label for="shipping_country">Country</label>
+        <input id="shipping_country" type="text" value="India" />
+
+        <label for="notes">Notes</label>
+        <input id="notes" type="text" value="Please deliver after 6 PM" />
+
+        <button id="payBtn">Create Order & Pay</button>
+      </div>
+
+      <div class="card">
+        <h2>Test Notes</h2>
+        <ul>
+          <li>Select <strong>UPI</strong> in Razorpay popup</li>
+          <li>Use <code>success@razorpay</code> for successful payment</li>
+          <li>Use <code>failure@razorpay</code> for failed payment</li>
+          <li>Test mode does not use real money</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Status</h2>
+        <div id="statusBox" class="status idle">Waiting for action...</div>
+      </div>
+
+      <div class="card">
+        <h2>Logs</h2>
+        <pre id="logBox">No logs yet.</pre>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./index.js"></script>
+</body>
+</html>
